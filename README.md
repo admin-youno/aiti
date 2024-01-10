@@ -5,7 +5,7 @@
 ### Anleitung
 
 **Schritt 1: Konto erstellen**<br>
-Wenn du noch kein Konto hast, registriere dich zuerst auf [pythonAnywhere](https://www.pythonanywhere.com/).
+Wenn du noch kein Konto hast, registriere dich zuerst auf [pythonanywhere](https://www.pythonanywhere.com/).
 
 **Schritt 2: Neue Konsole starten**<br>
 Logge dich in dein Konto ein und öffne eine neue Bash-Konsole über den *Consoles*-Tab.
@@ -14,7 +14,7 @@ Logge dich in dein Konto ein und öffne eine neue Bash-Konsole über den *Consol
 Klone dein GitHub-Repository mit dem Befehl `git clone` gefolgt von der URL deines Repos:
 
 ```
-git clone [https://github.com/admin-youno/aiti.git
+git clone https://github.com/admin-youno/aiti.git
 ```
 
 **Schritt 4: Virtuelle Umgebung erstellen**<br>
@@ -25,7 +25,7 @@ mkvirtualenv venv --python=/usr/bin/python3.10
 ```
 
 **Schritt 5: Pakete installieren**<br>
-Wechsle in das Verzeichnis deines geklonten Repos und installiere alle benötigten Pakete aus deiner `requirements.txt`:
+Wechsle in das Verzeichnis deines geklonten Repos (aiti) und installiere alle benötigten Pakete aus deiner `requirements.txt`:
 
 ```
 workon venv
@@ -33,12 +33,43 @@ pip install -r requirements.txt
 ```
 
 **Schritt 6: Web-App erstellen**<br>
-Gehe zum "Web"-Tab und erstelle eine neue Flask Web-App. Wähle die manuelle Konfiguration (Python) und die Version, die zu deiner virtuellen Umgebung passt.
+Gehe zum "Web"-Tab und erstelle eine neue Flask Web-App. Wähle Python Version 3.10 und ändere den Pfad von /home/[username]/mysite/flask_app.py zu /home/[username]/aiti/flask_app.py.
 
-**Schritt 7: WSGI-Datei konfigurieren**
-PythonAnywhere verwendet WSGI, um deine App zu starten. Passe die WSGI-Konfigurationsdatei an, um auf deine Anwendung zu verweisen. Du findest diese Datei im "Web"-Tab.
+**Schritt 7: Web-App konfigurieren**
+
+PythonAnywhere verwendet WSGI, um deine App zu starten. Kopiere den folgenden Code in die WSGI-Konfigurationsdatei ("Web"-Tab) :
+
+```
+import sys
+import os
+
+from dotenv import load_dotenv
+
+project_folder = os.path.expanduser('~/aiti')
+load_dotenv(os.path.join(project_folder, '.env'))
+
+# add your project directory to the sys.path
+project_home = '/home/'+ USERNAME + '/aiti'
+if project_home not in sys.path:
+    sys.path = [project_home] + sys.path
+
+# import flask app but need to call it "application" for WSGI to work
+from app import app as application  # noqa
+```
+
+Gehe dann zum "Web"-Tab" zurück und setze den Pfad zu deiner virtuellen Umgebung:
+
+```
+/home/[username]/.virtualenvs/venv
+```
+
+Aktiviere abschließend noch de
 
 **Schritt 8: Datenbank erstellen**
+
+Gehe auf den "Database"-Tab und erstelle eine neues MySQL Passwort um die Datenbank zu initialisieren.
+Erstelle danach eine neue Datenbank mit dem Namen "aiti".
+Öffne die MySQL Konsole "aiti" und führe das folgende Statement aus:
 
 ```
 CREATE TABLE `Message` (
@@ -58,18 +89,35 @@ CREATE TABLE `Message` (
 );
 ```
 
+Überprüfe mit dem folgenden Statement ob die Tabelle angelegt wurde:
+
 ```
-show Tables;
+describe Message;
+```
+**Schritt 9: Google Custom Search einrichten**<br>
+
+Siehe [Anleitung](https://developers.google.com/custom-search/v1/introduction?hl=de)
+
+*Hinweis: CX = Suchmaschinen-ID*
+
+**Schritt 10: Environment Variablen setzen**<br>
+Wechsle zum "Files"-Tab und navigiere zu folgendem Pfad: /home/[username]/aiti und öffne die .env Datei und befülle die entsprechenden Variablen:
+
+```
+USERNAME=
+OPENAI_API_KEY=
+MYSQL_API_KEY=
+GOOGLE_API_KEY=
+GOOGLE_API_CX=
 ```
 
-**Schritt 9: Web-App aktualisieren**<br>
+**Schritt 11: Web-App aktualisieren**<br>
 Nachdem du alles konfiguriert hast, klicke auf "Reload" auf deinem PythonAnywhere "Web"-Tab.
 
-**Schrit 10: Wep-App ausführen**<br>
+**Schrit 12: Wep-App ausführen**<br>
 Klicke auf den Link im "Web"-Tab, um deine Applikation zu testen.
 
 ### Weitere Ressourcen
 
 [Github Upload](https://help.pythonanywhere.com/pages/UploadingAndDownloadingFiles/)<br>
 [Virtuelle Umgebung](https://help.pythonanywhere.com/pages/Virtualenvs/)
-
