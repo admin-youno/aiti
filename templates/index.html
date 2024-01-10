@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="https://{{ env }}.eu.pythonanywhere.com/static/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://{{ env }}.eu.pythonanywhere.com/static/styles.css">
+  <style>
+        @font-face {
+            font-family: 'Avenir';
+            src: url('https://{{ env }}.eu.pythonanywhere.com/static/Avenir Heavy.ttf') format('truetype');
+        }
+
+        body {
+            font-family: "Avenir", sans-serif;
+        }
+    </style>
+  <title>Prototyp</title>
+</head>
+<body>
+  <div class="container">
+        <div class="header">
+            <table>
+                <td style="width:300px">
+                    <a href="https://{{ env }}.eu.pythonanywhere.com">
+                        <img class="logo" id="logo" data-height-percentage="46" data-src="https://{{ env }}.eu.pythonanywhere.com/static/Color logo - small.png" class=" ls-is-cached lazyloaded" src="https://{{ env }}.eu.pythonanywhere.com/static/Color logo - small.png" data-actual-width="1905" data-actual-height="510">
+                    </a>
+                </td>
+                <td><h1 style="color:#212121!important">Prototyp</h1></td>
+            </table>
+        </div>
+        <div class="menu_left">
+            <div class="input-container">
+                <input type="text" id="chatID" style="display: none;">
+                <label for="model">Model</label>
+                <select id="model" onchange="clearChat()">
+                <option value="gpt-3.5-turbo-1106" selected>Updated GPT 3.5 Turbo</option>
+                <option value="gpt-3.5-turbo">GPT 3.5 Turbo</option>
+                <option value="gpt-3.5-turbo-16k" >GPT3.5 (16k)</option>
+                <option value="gpt-4">GPT4</option>
+                <option value="gpt-4-32k">GPT4 (32k)</option>
+                <option value="gpt-4-1106-preview">GPT4 (128k)</option>
+              </select>
+              <label for="mode">Modus:</label>
+              <select id="mode" onchange="clearChat()">
+                <option value="chat" >Chat</option>
+                <option value="research" selected>Marktrecherche</option>
+              </select>
+              <label for="sites">Anzahl Websites</label>
+              <input type="number" id="sites" min="1" max="7" value="3">
+            </div>
+        </div>
+        <div class="main">
+            <div id="chat" class="chat-container">
+              <div class="loader-overlay" id="loaderOverlay" style="display: none;">
+                <div class="loader"></div>
+              </div>
+              <div id="chatContainer"></div>
+            </div>
+            <div class="query-container">
+                <textarea id="user_prompt" class="query" placeholder="Anfrage eingeben.." autofocus></textarea>
+                <button onclick="startRecording()" class="mic-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="1.5em" id="mic-icon" viewBox="0 0 384 512">
+                        <style>svg{fill:#f9c307}</style>
+                        <path d="M192 0C139 0 96 43 96 96V256c0 53 43 96 96 96s96-43 96-96V96c0-53-43-96-96-96zM64 216c0-13.3-10.7-24-24-24s-24 10.7-24 24v40c0 89.1 66.2 162.7 152 174.4V464H120c-13.3 0-24 10.7-24 24s10.7 24 24 24h72 72c13.3 0 24-10.7 24-24s-10.7-24-24-24H216V430.4c85.8-11.7 152-85.3 152-174.4V216c0-13.3-10.7-24-24-24s-24 10.7-24 24v40c0 70.7-57.3 128-128 128s-128-57.3-128-128V216z"/>
+                        </svg>
+                </button>
+            </div>
+            <div style="float:right;">
+                <button class="button" onclick="clearChat()">Clear Chat</button>
+                <button class="button" onclick="processUserInput()">Generate</button>
+            </div>
+        </div>
+        <div class="menu_right">
+            <div class="input-container">
+                <h3>Dashboard</h3>
+                <label>Queries</label>
+                <span id='total_query'>0</span>
+                <br>
+                <label>Ø Completion Time [s]</label>
+                <span id='completion_time'>0</span>
+                <br>
+                <label>Prompt Tokens</label>
+                <span id='prompt_token'>0</span>
+                <br>
+                <label>Completion Tokens</label>
+                <span id='completion_token'>0</span>
+                <br>
+                <label>Total Tokens</label>
+                <span id='total_token'>0</span>
+                <br>
+                <label>Costs [€]</label>
+                <span id='total_cost'>0</span>
+            </div>
+        </div>
+    </div>
+  <script src="https://cdn.jsdelivr.net/npm/uuid/dist/umd/uuidv4.min.js"></script>
+  <script>
+
+    let tokenTotal = 0;
+    let promptTotal = 0;
+    let completionTotal = 0;
+    let queryTotal = 0;
+    let costTotal = 0;
+    let completionTime = 0;
+
+    window.onload = function() {
+        reset();
+        updateID();
+    }
+
+    function updateID(){
+        document.getElementById('chatID').value = uuidv4();
+    }
+
+    function clearChat() {
+        reset();
+        updateID();
+    }
+
+    function reset(){
+
+        const chat_id = document.getElementById('chatID').value;
+
+        fetch('https://{{ env }}.eu.pythonanywhere.com/truncate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: chat_id
+            })
+        });
+
+        document.getElementById('chatContainer').innerHTML='';
+
+        document.getElementById('total_query').textContent = 0;
+        document.getElementById('prompt_token').textContent = 0;
+        document.getElementById('completion_token').textContent = 0;
+        document.getElementById('total_token').textContent = 0;
+        document.getElementById('total_cost').textContent = 0;
+        document.getElementById('completion_time').textContent = 0;
+
+        tokenTotal = 0;
+        promptTotal = 0;
+        completionTotal = 0;
+        queryTotal = 0;
+        costTotal = 0;
+        completionTime = 0;
+
+    }
+
+    function scrollToBottom() {
+        const chatContainer = document.getElementById('chat');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function appendUserMessage(message) {
+        const chatContainer = document.getElementById('chatContainer');
+        const userMessageElement = document.createElement('p');
+        userMessageElement.className = 'message user-message';
+        userMessageElement.innerHTML = message.replace(/\n/g, '<br>');
+        chatContainer.appendChild(userMessageElement);
+        scrollToBottom();
+    }
+
+    function appendBotMessage(message,time,token) {
+
+        const chatContainer = document.getElementById('chatContainer');
+        const botMessageElement = document.createElement('p');
+        botMessageElement.className = 'message bot-message';
+        botMessageElement.innerHTML = message.replace(/\n/g, '<br>');
+
+        const newlineElement = document.createElement('br');
+        botMessageElement.appendChild(newlineElement);
+
+        const tokenElement = document.createElement('span');
+        tokenElement.textContent = `(Time: ${time}s, Token: ${token})`;
+        tokenElement.style.fontSize = '60%';
+        botMessageElement.appendChild(tokenElement);
+
+        chatContainer.appendChild(botMessageElement);
+        scrollToBottom();
+
+    }
+
+    function appendContextMessage(message) {
+
+        const chatContainer = document.getElementById('chatContainer');
+        const botMessageElement = document.createElement('p');
+        botMessageElement.className = 'message bot-context';
+        botMessageElement.innerHTML = message.replace(/\n/g, '<br>');
+
+        const newlineElement = document.createElement('br');
+        botMessageElement.appendChild(newlineElement);
+
+        chatContainer.appendChild(botMessageElement);
+
+    }
+
+    function showLoader() {
+      const loaderOverlay = document.getElementById('loaderOverlay');
+      loaderOverlay.style.display = 'flex';
+    }
+
+    function hideLoader() {
+      const loaderOverlay = document.getElementById('loaderOverlay');
+      loaderOverlay.style.display = 'none';
+    }
+
+    async function processUserInput() {
+
+        const chat_id = document.getElementById('chatID').value;
+        const model = document.getElementById('model').value;
+        const mode = document.getElementById('mode').value;
+        const sites = document.getElementById('sites').value;
+        const user_prompt = document.getElementById('user_prompt').value;
+
+        document.getElementById('user_prompt').value = ''
+
+        if (user_prompt !== ""){
+            appendUserMessage(user_prompt);
+        }
+
+        const requestData = {
+            chat_id: chat_id,
+            model: model,
+            user_prompt: user_prompt,
+            mode: mode,
+            sites: sites
+        };
+
+        const chatContainer = document.getElementById('chatContainer');
+        const botMessageElement = document.createElement('p');
+        botMessageElement.className = 'message bot-message';
+        chatContainer.appendChild(botMessageElement);
+
+        const loaderContainer = document.createElement('div');
+        loaderContainer.className = 'loader-container';
+        botMessageElement.appendChild(loaderContainer);
+
+        const loader = document.createElement('div');
+        loader.className = 'loader';
+        loaderContainer.appendChild(loader);
+
+        const loaderText = document.createElement('span');
+        loaderText.innerText = 'Thinking...';
+        loaderContainer.appendChild(loaderText);
+
+        let firstChunkReceived = false;
+
+        const response = await fetch('https://{{ env }}.eu.pythonanywhere.com/request', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        const reader = response.body.getReader();
+
+        while (true) {
+            const { done, value } = await reader.read();
+
+            if (done) {
+                break;
+            }
+
+            if (!firstChunkReceived) {
+                loader.remove();
+                botMessageElement.innerHTML = ''
+                firstChunkReceived = true;
+            }
+
+            try {
+
+                chunks = new TextDecoder().decode(value);
+
+                json = chunks.split("\n")
+                json.pop();
+
+                json.forEach((item) => {
+
+                    try {
+
+                        const jsonData = JSON.parse(item);
+                        botMessageElement.innerHTML += jsonData.response || "";
+
+                        if (jsonData.response == "<END>") {
+
+                            botMessageElement.innerHTML += jsonData.urls || "";
+
+                            updateDashboard(jsonData.prompt_tokens,jsonData.completion_tokens,jsonData.completion_time)
+                        }
+
+                        scrollToBottom();
+
+                    }
+                    catch (error) {
+                        console.log('Failed to parse JSON:', error);
+                    }
+
+                });
+
+            } catch (error) {
+
+                botMessageElement.innerHTML = error.message
+            }
+
+        }
+
+    }
+
+    function updateDashboard(prompt,completion,time) {
+
+        tokenTotal = tokenTotal+prompt+completion;
+        promptTotal = promptTotal+prompt;
+        completionTotal = completionTotal+completion;
+        queryTotal = queryTotal + 1;
+        completionTime = (completionTime+time)/2
+
+        model = document.getElementById('model').value
+
+        if( model.indexOf("gpt-3.5") >= 0){
+
+            costTotal = costTotal + (prompt/1000*0.001)+(completion/1000*0.002);
+
+        }
+        else if( model == "gpt-4" || model == "gpt-4-32k"){
+
+            costTotal = costTotal + (prompt/1000*0.03)+(completion/1000*0.06);
+
+        }
+        else if( model == "gpt-4-1106-preview"){
+
+            costTotal = costTotal + (prompt/1000*0.01)+(completion/1000*0.03);
+
+        }
+        else if( model == 'claude-instant-1'){
+
+            costTotal = costTotal + (prompt/1000000*1.63)+(completion/1000000*5.51);
+
+        }
+        else if( model == 'claude-2'){
+
+            costTotal = costTotal + (prompt/1000000*11.02)+(completion/1000000*32.68);
+
+        }
+        else {
+
+            costTotal = 0;
+        }
+
+        document.getElementById('total_query').textContent = queryTotal;
+        document.getElementById('total_token').textContent = tokenTotal;
+        document.getElementById('prompt_token').textContent = promptTotal;
+        document.getElementById('completion_token').textContent = completionTotal;
+        document.getElementById('total_cost').textContent = costTotal.toFixed(3);
+
+        if (queryTotal > 1) {
+            document.getElementById('completion_time').textContent = completionTime.toFixed(2)
+        }
+        else {
+            document.getElementById('completion_time').textContent = time.toFixed(2)
+        }
+
+    }
+
+    const userInput = document.getElementById('user_prompt');
+    userInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            processUserInput();
+        }
+    });
+
+
+    function startRecording() {
+        if ('webkitSpeechRecognition' in window) {
+
+            const recognition = new webkitSpeechRecognition();
+            recognition.lang = 'de-DE';
+
+            recognition.onstart = function() {
+                document.getElementById('mic-icon').style.fill = "#fbdb6b";
+                document.getElementById('user_prompt').value = "";
+                document.getElementById('user_prompt').placeholder = "Bitte jetzt sprechen...";
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('user_prompt').value = transcript;
+                document.getElementById('mic-icon').style.fill = "#f9c307";
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Error occurred in recognition:', event.error);
+            };
+
+            recognition.start();
+        } else {
+            alert('Your browser does not support the Web Speech API. Please use a compatible browser like Chrome.');
+    }
+}
+
+  </script>
+</body>
+</html>
