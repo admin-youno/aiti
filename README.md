@@ -49,7 +49,7 @@ project_folder = os.path.expanduser('~/aiti')
 load_dotenv(os.path.join(project_folder, '.env'))
 
 # add your project directory to the sys.path
-project_home = '/home/'+ USERNAME + '/aiti'
+project_home = '/home/'+ os.getenv("USERNAME") + '/aiti'
 if project_home not in sys.path:
     sys.path = [project_home] + sys.path
 
