@@ -63,7 +63,7 @@ Gehe dann zum "Web"-Tab" zurück und setze den Pfad zu deiner virtuellen Umgebun
 /home/[username]/.virtualenvs/venv
 ```
 
-Aktiviere abschließend noch de
+Aktiviere abschließend noch den den Button "Force HTTPS". Falls gewünscht, kann zusätzlich auch noch eine Passwort Protection eingerichtet werden. Dazu einfach die "Password Protection" aktivieren und einen Usernamen und PW vergeben (wird beim Aufruf der Seite abgefragt).
 
 **Schritt 8: Datenbank erstellen**
 
