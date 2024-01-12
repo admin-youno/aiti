@@ -104,11 +104,11 @@ Siehe [Anleitung](https://developers.google.com/custom-search/v1/introduction?hl
 Wechsle zum "Files"-Tab und navigiere zu folgendem Pfad: /home/[username]/aiti und öffne die .env Datei und befülle die entsprechenden Variablen:
 
 ```
-USERNAME=
-OPENAI_API_KEY=
-MYSQL_API_KEY=
-GOOGLE_API_KEY=
-GOOGLE_API_CX=
+USERNAME= [pythonanywhere Login-Name]
+OPENAI_API_KEY= [API Key (aus Google Colab NB)]
+MYSQL_API_KEY= [Passwort aus Schritt 8]
+GOOGLE_API_KEY= [API Key aus Schritt 9]
+GOOGLE_API_CX= [Suchmaschinen-ID aus Schritt 9]
 ```
 
 **Schritt 11: Web-App aktualisieren**<br>
