@@ -57,7 +57,7 @@ if project_home not in sys.path:
 from app import app as application  # noqa
 ```
 
-Gehe dann zum "Web"-Tab" zurück und setze den Pfad zu deiner virtuellen Umgebung:
+Gehe dann zum "Web"-Tab" zurück und setze den Pfad zu deiner virtuellen Umgebung im Abschnitt "Virtualenv":
 
 ```
 /home/[username]/.virtualenvs/venv
