@@ -5,7 +5,7 @@
 ### Anleitung
 
 **Schritt 1: Konto erstellen**<br>
-Wenn du noch kein Konto hast, registriere dich zuerst auf [pythonanywhere](https://www.pythonanywhere.com/).
+Wenn du noch kein Konto hast, registriere dich zuerst auf [pythonanywhere](https://www.eu.pythonanywhere.com/).
 
 **Schritt 2: Neue Konsole starten**<br>
 Logge dich in dein Konto ein und öffne eine neue Bash-Konsole über den *Consoles*-Tab.
