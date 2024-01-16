@@ -6,6 +6,7 @@
 
 **Schritt 1: Konto erstellen**<br>
 Wenn du noch kein Konto hast, registriere dich zuerst auf [pythonanywhere](https://www.eu.pythonanywhere.com/).
+*Hinweis: Damit das Web Scraping funktioniert, ist mindestens ein 'Hacker' Account notwendig.*
 
 **Schritt 2: Neue Konsole starten**<br>
 Logge dich in dein Konto ein und öffne eine neue Bash-Konsole über den *Consoles*-Tab.
